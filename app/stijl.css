@@ -1,0 +1,177 @@
+/* =========================================================================
+   STIJLBESTAND - dit is het bestand om aan te passen als je de KLEUREN,
+   LETTERTYPES of algemene LAY-OUT van de site wil wijzigen.
+   Geen Python-kennis nodig: gewoon dit bestand openen en waarden aanpassen.
+   ========================================================================= */
+
+:root {
+  /* --- Hoofdkleuren van de site: pas deze 6 waarden aan voor een volledig
+     nieuwe kleurenpalet (bv. clubkleuren) --- */
+  --groen: #1e5631;        /* hoofdkleur: koptekst, knoppen, titels */
+  --groen-licht: #2f7a44;  /* hoofdkleur bij hover over een knop */
+  --geel: #ffe066;         /* niet rechtstreeks gebruikt, ter beschikking voor extra accenten */
+  --grijs: #f4f5f3;        /* achtergrondkleur van de pagina */
+  --tekst: #1f2421;        /* algemene tekstkleur */
+  --rand: #dde2dc;         /* kleur van lijntjes/randen (tabellen, kaarten) */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  /* Lettertype van de hele site. Verander "Segoe UI" naar een ander
+     lettertype als je dat liever hebt (bv. "Georgia", "Verdana", ...). */
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--tekst);
+  background: var(--grijs);
+}
+
+/* --- Bovenbalk (logo/titel + navigatie) --- */
+header.topbar {
+  background: var(--groen);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+header.topbar h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  font-weight: 600;
+}
+nav.topnav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 1rem;
+  font-size: .92rem;
+  opacity: .92;
+}
+nav.topnav a:hover { text-decoration: underline; }
+
+/* --- Algemene lay-out --- */
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+/* --- "Kaarten" (de afgeronde witte vakken rond elk onderdeel) --- */
+.kaart {
+  background: white;
+  border: 1px solid var(--rand);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+h2 { color: var(--groen); font-size: 1.05rem; margin-top: 0; }
+
+/* --- Tabellen (rankings, deelnemerslijsten, ...) --- */
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { padding: .45rem .6rem; text-align: left; border-bottom: 1px solid var(--rand); }
+th { color: var(--groen); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .02em; }
+tr:last-child td { border-bottom: none; }
+
+/* --- Knoppen --- */
+.knop {
+  display: inline-block;
+  background: var(--groen);
+  color: white;
+  border: none;
+  padding: .55rem 1.1rem;
+  border-radius: 6px;
+  font-size: .92rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.knop:hover { background: var(--groen-licht); }
+.knop.secundair { background: white; color: var(--groen); border: 1px solid var(--groen); }
+.kleine-knop { font-size: .8rem; padding: .3rem .6rem; }
+
+/* --- Formuliervelden --- */
+input, select, textarea {
+  padding: .45rem .55rem;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  font-size: .92rem;
+  font-family: inherit;
+}
+label { font-size: .85rem; font-weight: 600; color: #444; display: block; margin-bottom: .2rem; }
+.veld { margin-bottom: 1rem; }
+.rij { display: flex; gap: 1rem; flex-wrap: wrap; }
+.rij > .veld { flex: 1; min-width: 180px; }
+.deelnemers-tabel input { width: 100%; }
+
+/* --- Meldingen bovenaan (fouten/succes) --- */
+.flash { padding: .7rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: .9rem; }
+.flash.fout { background: #fde8e8; color: #a12525; border: 1px solid #f3c2c2; }
+.flash.succes { background: #e6f4ea; color: #1e5631; border: 1px solid #b7ddc3; }
+
+/* --- PR-markering (kroontje + gele highlight) --- */
+.kroon::after { content: " \1F451"; }
+.pr-geel { background: #f5ff00; }   /* fluogeel */
+
+/* --- Voettekst onderaan elke pagina --- */
+footer.pagina { text-align: center; color: #888; font-size: .78rem; padding: 2rem 0 1rem; }
+
+
+/* --- Klikbare titel (terug naar home) --- */
+.titel-link { color: inherit; text-decoration: none; }
+.titel-link:hover { text-decoration: underline; }
+
+/* --- Gevaarlijke acties (verwijderen) --- */
+.knop.gevaar { background: #a12525; color: white; border: 1px solid #a12525; }
+.knop.gevaar:hover { background: #c23a3a; }
+.knop.secundair.gevaar { background: white; color: #a12525; }
+.knop.secundair.gevaar:hover { background: #fde8e8; }
+
+/* --- Rij van een atleet met ontbrekende gegevens (lichtgeel, niet fluo) --- */
+.onvolledig-rij { background: #fff6cf; }
+
+/* --- Kroontje achter de voornaam bij een nieuw PR --- */
+.kroon-icoon { width: 1em; height: 1em; vertical-align: -.12em; margin-left: .3em; fill: #d99a00; }
+.nieuw-pr { font-weight: 700; }
+.pr-kolom { color: #666; font-size: .85em; white-space: nowrap; }
+.legenda { font-size: .8rem; color: #555; margin-top: 1rem; }
+.print-kop { font-size: .8rem; color: #555; margin-bottom: .4rem; }
+.print-titel { margin: 0 0 .25rem; }
+
+/* --- Popup om een datum/seizoen te kiezen (Home) --- */
+dialog { border: 1px solid var(--rand); border-radius: 10px; padding: 1.25rem 1.5rem; min-width: 320px; max-width: 92vw; }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+.knoppenrij { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* --- Tekst die enkel op papier/PDF verschijnt --- */
+.alleen-print { display: none; }
+
+/* =========================================================================
+   AFDRUKKEN EN PDF: A4 LIGGEND
+   (geldt voor "Afdrukken" in de browser én voor de PDF-download)
+   ========================================================================= */
+@page { size: A4 landscape; margin: 12mm; }
+
+@media print {
+  body { background: white; }
+  .geen-print { display: none !important; }
+  .alleen-print { display: block; }
+  main { max-width: none; padding: 0; }
+  .kaart { border: none; box-shadow: none; padding: 0; margin: 0; }
+  table { font-size: 9.5pt; }
+  th, td { padding: .3rem .45rem; }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  h3 { page-break-after: avoid; }
+  /* Vaste kolombreedtes, zodat de tabellen "Vrouwen" en "Mannen" mooi onder elkaar uitlijnen */
+  .print-tabel, .grid-tabel { table-layout: fixed; width: 100%; }
+  .grid-wrapper { overflow: visible !important; }
+  /* Het seizoensgrid heeft 26 kolommen: kleiner lettertype zodat alles op 1 pagina past */
+  .grid-tabel td { font-size: 6.4pt; padding: .2rem .1rem; text-align: center; white-space: nowrap; }
+  .grid-tabel th { font-size: 6pt; letter-spacing: 0; padding: .2rem .1rem; text-align: center; }
+  .grid-tabel th:nth-child(-n+2), .grid-tabel td:nth-child(-n+2) { text-align: left; }
+  .grid-tabel td:nth-child(-n+2) { font-size: 7.5pt; padding-left: .3rem; }
+  .pr-geel { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .kroon-icoon { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
