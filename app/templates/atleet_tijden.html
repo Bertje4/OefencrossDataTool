@@ -1,0 +1,58 @@
+{#
+  TIJDEN INDIVIDUELE ATLEET - kies 1 tot 5 atleten en vergelijk hun eindtijden:
+  een histogram (klassen van 5 seconden) en de evolutie in de tijd.
+  De tekeninglogica staat in app/static/atleet_tijden.js, de kleuren in stijl.css
+  (--serie-1 ... --serie-5). Enkel de eindtijd telt, geen tussentijden.
+#}
+{% extends "basis.html" %}
+{% block titel %}Tijden individuele atleet{% endblock %}
+{% block inhoud %}
+<div class="kaart">
+  <h2>Tijden individuele atleet</h2>
+  <p style="font-size:.85rem; color:#777; margin-top:0;">
+    Kies 1 tot 5 atleten om hun eindtijden te vergelijken. Elke atleet krijgt een eigen kleur
+    (en vorm). Enkel de eindtijd telt; atleten die slechts 1 ronde liepen, hebben geen eindtijd.
+  </p>
+  <div class="gr-kiezer" id="gr-kiezer">
+    <label for="gr-invoer">Atleet toevoegen (<span id="gr-teller">0</span> van 5)</label>
+    <input type="text" id="gr-invoer" autocomplete="off" placeholder="Typ een naam of voornaam"
+           role="combobox" aria-expanded="false" aria-controls="gr-lijst" aria-autocomplete="list">
+    <div class="sugg-lijst" id="gr-lijst" role="listbox" hidden style="left:0; right:0; top:100%; margin-top:2px;"></div>
+  </div>
+  <ul class="gr-chips" id="gr-chips" aria-label="Gekozen atleten"></ul>
+  <p class="flash fout" id="gr-fout" hidden></p>
+</div>
+
+<div class="kaart" id="gr-kaart-evolutie" hidden>
+  <h2>Evolutie van de eindtijd</h2>
+  <div class="gr-wrap" id="gr-evolutie" tabindex="0"
+       aria-label="Evolutie van de eindtijd. Gebruik de pijltjestoetsen links en rechts om van punt naar punt te gaan."></div>
+  <p class="gr-hulp">Lager is sneller. Beweeg over een punt (of gebruik de pijltjestoetsen) voor de exacte tijd.</p>
+  <button type="button" class="knop secundair kleine-knop" id="gr-tabel-evo-knop" aria-expanded="false" style="margin-top:.6rem;">Tabel tonen</button>
+  <div class="gr-tabel-wrap" id="gr-tabel-evo" hidden></div>
+</div>
+
+<div class="kaart" id="gr-kaart-histogram" hidden>
+  <h2>Spreiding van de eindtijden</h2>
+  <div class="gr-opties">
+    <span class="gr-seg" role="group" aria-label="Waarde">
+      <button type="button" id="gr-w-aantal" aria-pressed="true">Aantal</button>
+      <button type="button" id="gr-w-pct" aria-pressed="false">Aandeel (%)</button>
+    </span>
+    <span class="gr-seg" role="group" aria-label="Weergave" id="gr-weergave" hidden>
+      <button type="button" id="gr-m-naast" aria-pressed="true">Naast elkaar</button>
+      <button type="button" id="gr-m-over" aria-pressed="false">Over elkaar</button>
+    </span>
+  </div>
+  <div class="gr-wrap" id="gr-histogram" tabindex="0"
+       aria-label="Histogram van de eindtijden in klassen van 5 seconden. Gebruik de pijltjestoetsen links en rechts om van klasse naar klasse te gaan."></div>
+  <p class="gr-hulp">Elke staaf = alle oefencrossen met een eindtijd binnen dezelfde 5 seconden. Met "Aandeel (%)" kan je atleten met een verschillend aantal oefencrossen eerlijk vergelijken.</p>
+  <button type="button" class="knop secundair kleine-knop" id="gr-tabel-hist-knop" aria-expanded="false" style="margin-top:.6rem;">Tabel tonen</button>
+  <div class="gr-tabel-wrap" id="gr-tabel-hist" hidden></div>
+</div>
+
+<div class="kaart" id="gr-leeg"><p class="gr-leeg" style="margin:0;">Kies hierboven minstens 1 atleet om de grafieken te zien.</p></div>
+
+<script type="application/json" id="gr-keuzes">{{ keuzes|tojson }}</script>
+<script src="{{ url_for('static', filename='atleet_tijden.js') }}" data-url="{{ url_for('atleet_tijden_data') }}"></script>
+{% endblock %}

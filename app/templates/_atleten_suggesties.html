@@ -1,0 +1,5 @@
+{# Suggesties voor atleten die al in de database staan. Voeg deze regel toe aan
+   elk invoerformulier met velden naam[] en voornaam[]:
+   {% include "_atleten_suggesties.html" %} #}
+<script type="application/json" id="atleten-suggesties-data">{{ atleten_suggesties|tojson }}</script>
+<script src="{{ url_for('static', filename='atleten_suggesties.js') }}"></script>
