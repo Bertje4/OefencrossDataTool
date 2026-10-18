@@ -2,12 +2,13 @@ import os
 import secrets
 import uuid
 from datetime import timedelta
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory, g, jsonify
 from werkzeug.utils import secure_filename
 
 from . import datastore as ds
 from . import ranking
 from . import pdf as pdf_hulp
+from . import statistiek
 
 
 def create_app():
@@ -48,6 +49,21 @@ def create_app():
         }
         if request.endpoint in beveiligd and not session.get("ingelogd"):
             return redirect(url_for("login", volgende=request.path))
+
+    # Schrijfslot: elke POST (invoegen, wijzigen, verwijderen, aanvullen) wordt
+    # van begin tot einde afgehandeld terwijl we het slot vasthouden, zodat twee
+    # gelijktijdige invoeren elkaar nooit overschrijven.
+    @app.before_request
+    def neem_schrijfslot():
+        if request.method == "POST":
+            g._slot = ds.schrijflock()
+            g._slot.__enter__()
+
+    @app.teardown_request
+    def geef_schrijfslot_vrij(_exc):
+        slot = g.pop("_slot", None)
+        if slot is not None:
+            slot.__exit__(None, None, None)
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -132,6 +148,7 @@ def create_app():
                 event=bestaand_event,
                 datums=ds.lijst_datums(),
                 bewerken=datum_str is not None,
+                atleten_suggesties=statistiek.suggesties(),
             )
 
         # --- POST: formulier verwerken ---
@@ -213,7 +230,7 @@ def create_app():
     @app.route("/seizoensoverzicht/nieuw", methods=["GET", "POST"])
     def seizoensoverzicht_nieuw():
         if request.method == "GET":
-            return render_template("seizoensoverzicht_formulier.html", maanden=ds.MAAND_VOLGORDE)
+            return render_template("seizoensoverzicht_formulier.html", maanden=ds.MAAND_VOLGORDE, atleten_suggesties=statistiek.suggesties())
 
         startjaar = request.form.get("startjaar", "").strip()
         if not startjaar.isdigit():
@@ -331,6 +348,18 @@ def create_app():
     # -------------------------------------------------------------------
     # Popup 3: ontbrekende atleetgegevens aanvullen
     # -------------------------------------------------------------------
+    # -------------------------------------------------------------------
+    # Tijden individuele atleet (publiek, enkel lezen)
+    # -------------------------------------------------------------------
+    @app.route("/atleten/tijden")
+    def atleet_tijden():
+        return render_template("atleet_tijden.html", keuzes=statistiek.keuzelijst())
+
+    @app.route("/atleten/tijden/data")
+    def atleet_tijden_data():
+        ids = [i for i in request.args.get("a", "").split(",")]
+        return jsonify(statistiek.tijdreeksen(ids[:5]))
+
     @app.route("/atleten/aanvullen", methods=["GET", "POST"])
     def atleten_aanvullen():
         ids = session.get("onvolledige_ids", [])

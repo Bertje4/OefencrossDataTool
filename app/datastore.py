@@ -11,6 +11,8 @@ Bestandsstructuur van DataBase:
     oefencrossen/<datum>.json     -> 1 bestand per oefencross (datum = YYYY-MM-DD)
     verslagen/<...>               -> bijgevoegde bestanden (PDF/Word/...)
 """
+import contextlib
+import fcntl
 import json
 import os
 import re
@@ -43,6 +45,26 @@ def ensure_dirs():
     os.makedirs(VERSLAGEN_DIR, exist_ok=True)
     if not os.path.exists(ATLETEN_FILE):
         _write_json(ATLETEN_FILE, [])
+
+
+LOCK_FILE = os.path.join(DATA_DIR, ".schrijflock")
+
+
+@contextlib.contextmanager
+def schrijflock():
+    """
+    Cross-process slot voor schrijfacties. De webserver draait met meerdere
+    processen; zonder slot kunnen twee mensen die tegelijk bewaren elkaars
+    wijzigingen overschrijven (lezen-aanpassen-schrijven op atleten.json of op
+    hetzelfde oefencross-bestand). Wie tweede komt, wacht gewoon even.
+    """
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(LOCK_FILE, "a") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def _read_json(path, default):
