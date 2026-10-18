@@ -175,3 +175,54 @@ dialog::backdrop { background: rgba(0,0,0,.35); }
   .pr-geel { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .kroon-icoon { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* =========================================================================
+   SUGGESTIES BIJ HET INVOEREN (bekende atleten)
+   ========================================================================= */
+.sugg-lijst { position: absolute; z-index: 50; background: #fff; border: 1px solid var(--rand);
+  border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.12); max-height: 260px; overflow-y: auto; }
+.sugg-item { padding: .4rem .65rem; cursor: pointer; font-size: .9rem; }
+.sugg-item:hover, .sugg-item.actief { background: var(--grijs); }
+.sugg-hint { font-size: .72rem; margin-top: .2rem; color: #777; white-space: normal; }
+.sugg-hint.bekend { color: var(--groen); }
+.sugg-hint.nieuw { color: #9a6700; }
+.sugg-knop { border: 0; background: none; padding: 0; font: inherit; color: var(--groen);
+  text-decoration: underline; cursor: pointer; }
+
+/* =========================================================================
+   TIJDEN INDIVIDUELE ATLEET (grafieken)
+   Kleur van een atleet = vaste plek 1-5 (volgorde van keuze), onafhankelijk van tijden.
+   ========================================================================= */
+:root {
+  --serie-1: #2a78d6; --serie-2: #eb6834; --serie-3: #1baf7a; --serie-4: #eda100; --serie-5: #e87ba4;
+  --inkt: #1f2421; --inkt-zacht: #5d655f; --raster: #e6e9e5; --vlak: #ffffff;
+}
+.gr-kiezer { position: relative; max-width: 420px; }
+.gr-kiezer input { width: 100%; }
+.gr-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0 .25rem; padding: 0; list-style: none; }
+.gr-chip { display: inline-flex; align-items: center; gap: .45rem; border: 1px solid var(--rand);
+  border-radius: 999px; padding: .25rem .35rem .25rem .6rem; background: var(--vlak); font-size: .9rem; }
+.gr-chip svg { flex: none; }
+.gr-chip button { border: 0; background: none; cursor: pointer; font-size: 1.1rem; line-height: 1;
+  color: var(--inkt-zacht); padding: 0 .3rem; border-radius: 50%; }
+.gr-chip button:hover, .gr-chip button:focus-visible { color: #000; background: var(--grijs); }
+.gr-opties { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; margin: .4rem 0 .6rem; font-size: .85rem; }
+.gr-seg { display: inline-flex; border: 1px solid var(--rand); border-radius: 6px; overflow: hidden; }
+.gr-seg button { border: 0; background: var(--vlak); padding: .3rem .65rem; cursor: pointer; font: inherit; font-size: .85rem; }
+.gr-seg button[aria-pressed="true"] { background: var(--groen); color: #fff; }
+.gr-wrap { position: relative; }
+.gr-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gr-wrap:focus-visible { outline: 2px solid var(--groen); outline-offset: 3px; border-radius: 4px; }
+.gr-wrap text { fill: var(--inkt-zacht); font-size: 12px; font-family: inherit; }
+.gr-wrap .as-titel { fill: var(--inkt); font-size: 12.5px; }
+.gr-wrap .raster { stroke: var(--raster); stroke-width: 1; shape-rendering: crispEdges; }
+.gr-wrap .as-lijn { stroke: #b9bfb8; stroke-width: 1; shape-rendering: crispEdges; }
+.gr-tip { position: absolute; pointer-events: none; background: #fff; border: 1px solid var(--rand);
+  border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.15); padding: .4rem .6rem; font-size: .82rem;
+  color: var(--inkt); white-space: nowrap; z-index: 5; transform: translate(-50%, calc(-100% - 12px)); }
+.gr-tip .tip-kop { font-weight: 600; margin-bottom: .15rem; }
+.gr-tip .tip-rij { display: flex; align-items: center; gap: .4rem; }
+.gr-tip .tip-stip { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.gr-leeg { color: #888; padding: 1.5rem 0; }
+.gr-tabel-wrap { max-height: 320px; overflow: auto; margin-top: .5rem; }
+.gr-hulp { font-size: .8rem; color: #777; margin: .3rem 0 0; }
