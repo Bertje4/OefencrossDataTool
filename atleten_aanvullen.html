@@ -1,0 +1,37 @@
+{% extends "basis.html" %}
+{% block titel %}Atleetgegevens aanvullen{% endblock %}
+{% block inhoud %}
+<div class="kaart">
+  <h2>Gegevens aanvullen</h2>
+  <p>
+    Opgelet, u heeft {{ atleten|length }} atlete(n)/atleet(en) toegevoegd die nog niet (volledig)
+    in de database staan. Wilt u graag deze informatie aanvullen? Kijk goed na dat u geen
+    spelfouten in de naam heeft gemaakt! Geen paniek, de ingevoerde resultaten worden sowieso opgeslagen. Kies je "Nee, later aanvullen", dan kan je de gegevens altijd nog aanvullen via "Alle atleten".
+  </p>
+  <form method="post">
+    <table>
+      <thead><tr><th>Naam</th><th>Voornaam</th><th>Geslacht (m/v)</th><th>Geboortedatum</th></tr></thead>
+      <tbody>
+        {% for a in atleten %}
+        <tr>
+          <td>{{ a.naam }}</td>
+          <td>{{ a.voornaam }}</td>
+          <td>
+            <select name="geslacht_{{ a.id }}">
+              <option value="" {{ 'selected' if not a.geslacht else '' }}>-</option>
+              <option value="v" {{ 'selected' if a.geslacht == 'v' else '' }}>v</option>
+              <option value="m" {{ 'selected' if a.geslacht == 'm' else '' }}>m</option>
+            </select>
+          </td>
+          <td><input type="date" name="geboortedatum_{{ a.id }}" value="{{ a.geboortedatum or '' }}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="knoppenrij" style="margin-top:1rem;">
+      <button type="submit" class="knop">Invoegen</button>
+      <button type="submit" class="knop secundair" formaction="{{ url_for('atleten_aanvullen_overslaan') }}">Nee, later aanvullen</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
