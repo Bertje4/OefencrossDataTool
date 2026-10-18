@@ -1,0 +1,17 @@
+services:
+  oefencross:
+    image: acko-oefencross:latest        # eerst 1x bouwen in Portainer, zie LEES_MIJ.md
+    container_name: acko_oefencross
+    restart: unless-stopped
+    ports:
+      - "8420:8420"
+    volumes:
+      # De code/HTML/CSS (Config) - alleen-lezen:
+      - /mnt/Vijver/APPS/OefencrossTool/Config:/app:ro
+      # De data (DataBase) - dit is de map met alle echte gegevens:
+      - /mnt/Vijver/APPS/OefencrossTool/DataBase:/data
+    environment:
+      - OEFENCROSS_DATA_DIR=/data
+      - SECRET_KEY=CHOOSE_A_SECRET_KEY
+      # Gedeeld wachtwoord voor alle leden om de tool te mogen gebruiken:
+      - APP_WACHTWOORD=CHOOSE_A_STRONG_PASSWORD
