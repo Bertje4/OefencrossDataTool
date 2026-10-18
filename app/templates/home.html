@@ -1,0 +1,142 @@
+{#
+  HOMEPAGINA - volgt de sheet "Home" uit de schets: de All-Time Ranking (top 5,
+  gebaseerd op de eindtijd, mannen en vrouwen apart) en de knoppen.
+  Teksten kan je hier rechtstreeks aanpassen. Kleuren/lay-out: app/static/stijl.css.
+#}
+{% extends "basis.html" %}
+{% block titel %}Officiële ACKO Oefencross Database{% endblock %}
+{% block inhoud %}
+
+<div class="kaart">
+  <h2 style="font-size:1.35rem; margin-bottom:.2rem;">Officiële ACKO Oefencross Database</h2>
+</div>
+
+<div class="kaart">
+  <h2>All-Time Ranking <span style="font-weight:400; font-size:.85rem; color:#777;">(telkens top 5, op basis van de eindtijd)</span></h2>
+  <form method="get" class="rij" style="align-items:flex-end;">
+    <div class="veld">
+      <label for="vanaf">vanaf:</label>
+      <input type="text" list="datum-lijst" id="vanaf" name="vanaf" value="{{ vanaf_tekst }}" placeholder="dd/mm/jjjj" autocomplete="off">
+      <datalist id="datum-lijst">
+        {% for d in datums %}<option value="{{ d|datum_nl }}">{% endfor %}
+      </datalist>
+    </div>
+    <div class="veld" style="flex:0;">
+      <button class="knop" type="submit">Toepassen</button>
+    </div>
+  </form>
+  <p style="font-size:.8rem; color:#777; margin:0;">Kies een datum of typ ze om te zoeken. Laat leeg voor de volledige historiek.</p>
+</div>
+
+{% for label, titel in [("vrouwen", "Vrouwen"), ("mannen", "Mannen")] %}
+<div class="kaart">
+  <h2>{{ titel }}</h2>
+  {% if rankings[label] %}
+  <table>
+    <thead><tr><th>#</th><th>Naam</th><th>Voornaam</th><th>Tussen Tijd</th><th>Eind Tijd</th><th>Datum</th></tr></thead>
+    <tbody>
+      {% for r in rankings[label] %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ r.naam }}</td>
+        <td>{{ r.voornaam }}{% if not r.volledig %} <em style="color:#999;">(1 ronde)</em>{% endif %}</td>
+        <td>{{ r.tussen or '-' }}</td>
+        <td>{{ r.eind or '-' }}</td>
+        <td>{{ r.datum|datum_nl }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Nog geen resultaten.</p>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div class="kaart">
+  <h2>Wat wil je doen?</h2>
+  <div class="knoppenrij">
+    <a class="knop" href="{{ url_for('volledige_ranking') }}">Volledige Ranking</a>
+    <a class="knop" href="{{ url_for('oefencross_nieuw') }}">Oefencross Invoegen</a>
+    <button type="button" class="knop" onclick="openKies('wijzigen')">Oefencross Wijzigen</button>
+    <a class="knop" href="{{ url_for('seizoensoverzicht_nieuw') }}">Seizoensoverzicht Invoegen</a>
+    <button type="button" class="knop" onclick="openKies('print')">Oefencross Printen</button>
+    <button type="button" class="knop" onclick="openKies('seizoen')">Seizoensoverzicht Printen</button>
+  </div>
+  <div class="knoppenrij" style="margin-top:.75rem;">
+    <a class="knop secundair" href="{{ url_for('atleten_overzicht') }}">Alle atleten</a>
+    <a class="knop secundair" href="{{ url_for('atleten_overzicht', filter='onvolledig') }}">Onvolledige atleetgegevens aanvullen</a>
+  </div>
+</div>
+
+{# Popup om uit alle ingevoerde datums (of seizoenen) te kiezen; typen om te zoeken kan ook #}
+<dialog id="kies-dialog">
+  <form onsubmit="kiesBevestig(event)">
+    <h2 id="kies-titel" style="margin-bottom:.6rem;"></h2>
+    <div class="veld">
+      <label for="kies-invoer" id="kies-label"></label>
+      <input type="text" id="kies-invoer" list="kies-lijst" autocomplete="off" style="width:100%;">
+      <datalist id="kies-lijst"></datalist>
+    </div>
+    <p id="kies-fout" class="flash fout" hidden></p>
+    <div class="knoppenrij">
+      <button type="submit" class="knop">Openen</button>
+      <button type="button" class="knop secundair" onclick="document.getElementById('kies-dialog').close()">Annuleren</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const OEFENCROSS_DATUMS = {{ datums|tojson }};                 // jjjj-mm-dd, nieuwste eerst
+const SEIZOENEN = {{ seizoenen|tojson }};
+const URL_WIJZIGEN = {{ url_for('oefencross_wijzigen', datum_str='__X__')|tojson }};
+const URL_PRINT    = {{ url_for('oefencross_print', datum_str='__X__')|tojson }};
+const URL_SEIZOEN  = {{ url_for('seizoensoverzicht_print', seizoen_str='__X__')|tojson }};
+let modus = null;
+
+function naarNl(iso) { const [j, m, d] = iso.split('-'); return `${d}/${m}/${j}`; }
+function naarIso(nl) {
+  const m = nl.trim().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
+}
+
+function openKies(nieuweModus) {
+  modus = nieuweModus;
+  const titels = { wijzigen: 'Oefencross wijzigen', print: 'Oefencross printen', seizoen: 'Seizoensoverzicht printen' };
+  document.getElementById('kies-titel').textContent = titels[modus];
+  document.getElementById('kies-label').textContent =
+    modus === 'seizoen' ? 'Kies een seizoen (of typ om te zoeken)' : 'Kies een datum (of typ om te zoeken)';
+  const lijst = document.getElementById('kies-lijst');
+  lijst.innerHTML = '';
+  (modus === 'seizoen' ? SEIZOENEN : OEFENCROSS_DATUMS.map(naarNl)).forEach(w => {
+    const o = document.createElement('option'); o.value = w; lijst.appendChild(o);
+  });
+  document.getElementById('kies-invoer').value = '';
+  document.getElementById('kies-fout').hidden = true;
+  document.getElementById('kies-dialog').showModal();
+  document.getElementById('kies-invoer').focus();
+}
+
+function kiesBevestig(ev) {
+  ev.preventDefault();
+  const invoer = document.getElementById('kies-invoer').value.trim();
+  const fout = document.getElementById('kies-fout');
+  let waarde = null, url = null;
+  if (modus === 'seizoen') {
+    waarde = SEIZOENEN.includes(invoer) ? invoer : null; url = URL_SEIZOEN;
+  } else {
+    const iso = naarIso(invoer);
+    waarde = iso && OEFENCROSS_DATUMS.includes(iso) ? iso : null;
+    url = modus === 'wijzigen' ? URL_WIJZIGEN : URL_PRINT;
+  }
+  if (!waarde) {
+    fout.textContent = modus === 'seizoen'
+      ? 'Dit seizoen staat nog niet in de database.'
+      : 'Voor deze datum staat er geen oefencross in de database. Kies een datum uit de lijst (dd/mm/jjjj).';
+    fout.hidden = false;
+    return;
+  }
+  window.location.href = url.replace('__X__', waarde);
+}
+</script>
+{% endblock %}

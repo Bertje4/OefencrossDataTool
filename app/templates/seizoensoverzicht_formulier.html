@@ -1,0 +1,131 @@
+{#
+  SEIZOENSOVERZICHT INVOEGEN - bulk-invoer over een heel seizoen. Maakt/werkt
+  automatisch de individuele oefencrossen bij voor elke maand waarin data
+  werd ingevuld.
+#}
+{% extends "basis.html" %}
+{% block titel %}Seizoensoverzicht invoegen{% endblock %}
+{% block inhoud %}
+<div class="kaart">
+  <h2>Seizoensoverzicht invoegen</h2>
+  <div class="rij">
+    <div class="veld" style="max-width:220px;">
+      <label for="startjaar">Seizoen (startjaar)</label>
+      <input type="number" id="startjaar" name="startjaar" form="seizoen-formulier" placeholder="2026" required oninput="vulStandaardDatums()">
+      <p style="font-size:.8rem; color:#777; margin:.3rem 0 0;">bv. 2026 voor seizoen 2026-2027</p>
+    </div>
+    <div class="veld" style="max-width:320px;">
+      <label for="start_volgnummer">De hoeveelste oefencross was {{ maanden[0][1] }} (dit seizoen)?</label>
+      <input type="number" id="start_volgnummer" name="start_volgnummer" form="seizoen-formulier" placeholder="bv. 482" min="1">
+      <p style="font-size:.8rem; color:#777; margin:.3rem 0 0;">
+        Optioneel. Vul je dit in, dan telt de tool automatisch verder voor de
+        andere maanden van dit seizoen ({{ maanden[0][1] }} = dit getal,
+        {{ maanden[1][1] }} = dit getal + 1, enzovoort) — handig zolang nog niet
+        alle oefencrossen in de database staan. Eens dat de database vervolledidgd is,
+        moet dit niet meer ingevuld worden.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="kaart">
+  <h3 style="color:var(--groen); font-size:.95rem; margin-top:0;">Datum per maand</h3>
+  <p style="font-size:.83rem; color:#777;">
+    Elke oefencross vindt plaats op de <strong>eerste zondag van de maand</strong>; die datums worden
+    automatisch ingevuld zodra je het seizoen opgeeft. Was een oefencross bij uitzondering op een
+    andere dag? Klik dan op "Datums aanpassen". Enkel maanden waarin je tijden invult, worden effectief aangemaakt.
+  </p>
+  <div class="rij" style="flex-wrap:wrap;">
+    {% for code, label, nr in maanden %}
+    <div class="veld" style="min-width:140px; flex:0 0 auto;">
+      <label for="datum_{{ code }}">{{ label }}</label>
+      <input type="date" id="datum_{{ code }}" name="datum_{{ code }}" form="seizoen-formulier" class="maand-datum" data-nr="{{ nr }}" readonly>
+    </div>
+    {% endfor %}
+  </div>
+  <button type="button" class="knop secundair kleine-knop" id="override-knop" onclick="toggleOverride()">Datums aanpassen</button>
+</div>
+
+<div class="kaart">
+  <h3 style="color:var(--groen); font-size:.95rem; margin-top:0;">Deelnemers <span style="font-weight:400; color:#888;">(volgorde is niet van belang)</span></h3>
+  <p style="font-size:.83rem; color:#777;">
+    Tijden vul je in als <strong>mm:ss</strong>, of met honderdsten als <strong>mm:ss:hh</strong>
+    (bv. 12:34 of 12:34:56). Nam een atleet niet deel aan een bepaalde oefencross, of liep die maar
+    1 ronde? Laat de betreffende vakjes gewoon leeg.
+  </p>
+  <form method="post" id="seizoen-formulier">
+    <div style="overflow-x:auto;">
+    <table id="seizoen-tabel">
+      <thead>
+        <tr>
+          <th rowspan="2">Naam</th><th rowspan="2">Voornaam</th>
+          {% for code, label, nr in maanden %}
+          <th colspan="2">{{ label }}</th>
+          {% endfor %}
+        </tr>
+        <tr>
+          {% for code, label, nr in maanden %}
+          <th>tussen</th><th>eind</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody id="seizoen-tabel-body">
+        {% for _ in range(3) %}
+        <tr>
+          <td><input type="text" name="naam[]"></td>
+          <td><input type="text" name="voornaam[]"></td>
+          {% for code, label, nr in maanden %}
+          <td><input type="text" name="tussen_{{ code }}[]" placeholder="mm:ss" style="width:90px;"></td>
+          <td><input type="text" name="eind_{{ code }}[]" placeholder="mm:ss" style="width:90px;"></td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <p><button type="button" class="knop secundair kleine-knop" onclick="voegRijToe()">+ Deelnemer toevoegen</button></p>
+    <button type="submit" class="knop">Invoegen</button>
+  </form>
+</div>
+
+<script>
+// Eerste zondag van een maand (lokale tijd, zonder tijdzone-verrassingen)
+function eersteZondag(jaar, maandNr) {
+  const d = new Date(jaar, maandNr - 1, 1);
+  const dag = 1 + (7 - d.getDay()) % 7;   // getDay(): zondag = 0
+  const mm = String(maandNr).padStart(2, '0');
+  const dd = String(dag).padStart(2, '0');
+  return `${jaar}-${mm}-${dd}`;
+}
+function vulStandaardDatums() {
+  const start = parseInt(document.getElementById('startjaar').value, 10);
+  document.querySelectorAll('.maand-datum').forEach(inp => {
+    if (!start || start < 1900 || start > 2999) { inp.value = ''; return; }
+    const nr = parseInt(inp.dataset.nr, 10);
+    inp.value = eersteZondag(nr >= 11 ? start : start + 1, nr);
+  });
+}
+function toggleOverride() {
+  const knop = document.getElementById('override-knop');
+  const inputs = document.querySelectorAll('.maand-datum');
+  const wordtBewerkbaar = inputs[0].hasAttribute('readonly');
+  inputs.forEach(inp => wordtBewerkbaar ? inp.removeAttribute('readonly') : inp.setAttribute('readonly', ''));
+  if (!wordtBewerkbaar) vulStandaardDatums();   // terug naar standaard = eerste zondagen
+  knop.textContent = wordtBewerkbaar ? 'Terug naar eerste zondagen' : 'Datums aanpassen';
+}
+document.addEventListener('DOMContentLoaded', vulStandaardDatums);
+
+const maandCodes = [{% for code, label, nr in maanden %}"{{ code }}",{% endfor %}];
+function voegRijToe() {
+  const body = document.getElementById('seizoen-tabel-body');
+  const rij = document.createElement('tr');
+  let cellen = `<td><input type="text" name="naam[]"></td><td><input type="text" name="voornaam[]"></td>`;
+  maandCodes.forEach(code => {
+    cellen += `<td><input type="text" name="tussen_${code}[]" placeholder="mm:ss" style="width:90px;"></td>`;
+    cellen += `<td><input type="text" name="eind_${code}[]" placeholder="mm:ss" style="width:90px;"></td>`;
+  });
+  rij.innerHTML = cellen;
+  body.appendChild(rij);
+}
+</script>
+{% endblock %}

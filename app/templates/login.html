@@ -1,0 +1,26 @@
+{# INLOGPAGINA - 1 gedeeld wachtwoord voor alle leden. Geen navigatiebalk hier. #}
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inloggen — ACKO Oefencross Database</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='stijl.css') }}">
+</head>
+<body>
+<main style="max-width:380px; padding-top:3rem;">
+  <div class="kaart">
+    <h2 style="text-align:center;">🏃 ACKO Oefencross Database</h2>
+    {% if fout %}<div class="flash fout">{{ fout }}</div>{% endif %}
+    <form method="post">
+      <input type="hidden" name="volgende" value="{{ volgende }}">
+      <div class="veld">
+        <label for="wachtwoord">Wachtwoord</label>
+        <input type="password" id="wachtwoord" name="wachtwoord" autofocus required style="width:100%;">
+      </div>
+      <button type="submit" class="knop" style="width:100%;">Inloggen</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{# VOLLEDIGE RANKING - zelfde opbouw als de top-5 op Home, maar dan de hele lijst. #}
+{% extends "basis.html" %}
+{% block titel %}Volledige Ranking{% endblock %}
+{% block inhoud %}
+
+<div class="kaart">
+  <h2>Volledige Ranking <span style="font-weight:400; font-size:.85rem; color:#777;">(op basis van de eindtijd)</span></h2>
+  <form method="get" class="rij" style="align-items:flex-end;">
+    <div class="veld">
+      <label for="vanaf">vanaf:</label>
+      <input type="text" list="datum-lijst" id="vanaf" name="vanaf" value="{{ vanaf_tekst }}" placeholder="dd/mm/jjjj" autocomplete="off">
+      <datalist id="datum-lijst">
+        {% for d in datums %}<option value="{{ d|datum_nl }}">{% endfor %}
+      </datalist>
+    </div>
+    <div class="veld" style="flex:0;">
+      <button class="knop" type="submit">Toepassen</button>
+    </div>
+  </form>
+  <p style="font-size:.8rem; color:#777; margin:0;">Kies een datum of typ ze om te zoeken. Laat leeg voor de volledige historiek.</p>
+</div>
+
+{% for label, titel in [("vrouwen", "Vrouwen"), ("mannen", "Mannen")] %}
+<div class="kaart">
+  <h2>{{ titel }} <span style="font-weight:400; font-size:.85rem; color:#777;">({{ rankings[label]|length }})</span></h2>
+  {% if rankings[label] %}
+  <table>
+    <thead><tr><th>#</th><th>Naam</th><th>Voornaam</th><th>Tussen Tijd</th><th>Eind Tijd</th><th>Datum</th></tr></thead>
+    <tbody>
+      {% for r in rankings[label] %}
+      <tr>
+        <td>{{ r.rank }}</td>
+        <td>{{ r.naam }}</td>
+        <td>{{ r.voornaam }}{% if not r.volledig %} <em style="color:#999;">(1 ronde)</em>{% endif %}</td>
+        <td>{{ r.tussen or '-' }}</td>
+        <td>{{ r.eind or '-' }}</td>
+        <td>{{ r.datum|datum_nl }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Nog geen resultaten.</p>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div class="knoppenrij geen-print">
+  <a class="knop secundair" href="{{ url_for('home') }}">← Terug naar home</a>
+</div>
+{% endblock %}

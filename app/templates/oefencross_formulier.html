@@ -1,0 +1,97 @@
+{#
+  FORMULIER voor "Oefencross invoegen" EN "Oefencross wijzigen" (zelfde bestand).
+  Hulpteksten (bv. de uitleg over Ronde 1/2/Eindtijd) mag je hier vrij herschrijven.
+#}
+{% extends "basis.html" %}
+{% block titel %}Oefencross {{ 'wijzigen' if bewerken else 'invoegen' }}{% endblock %}
+{% block inhoud %}
+<div class="kaart">
+  <h2>Oefencross {{ 'wijzigen' if bewerken else 'invoegen' }}</h2>
+  <form method="post" enctype="multipart/form-data" id="event-formulier">
+    <div class="rij">
+      <div class="veld">
+        <label for="datum">Datum</label>
+        <input type="date" id="datum" name="datum" value="{{ event.datum if event else '' }}" {{ 'readonly' if bewerken else '' }} required>
+      </div>
+      <div class="veld">
+        <label for="grote_prijs">Grote Prijs (laat leeg indien niet van toepassing)</label>
+        <input type="text" id="grote_prijs" name="grote_prijs" value="{{ event.grote_prijs if event and event.grote_prijs else '' }}">
+      </div>
+    </div>
+
+    <p style="font-size:.8rem; color:#777;">
+      Tijden vul je in als mm:ss, of met honderdsten als mm:ss:hh (bv. 12:34 of 12:34:56). Vul je de Eindtijd rechtstreeks in, laat dan Ronde 2 leeg — die wordt automatisch berekend (en omgekeerd).
+      In het geval dat iemand slechts een enkele ronde heeft gelopen, vul je enkel ronde 1 in.
+    </p>
+    <h3 style="color:var(--groen); font-size:.95rem;">Deelnemers <span style="font-weight:400; color:#888;">(volgorde is niet van belang)</span></h3>
+    <table class="deelnemers-tabel" id="deelnemers-tabel">
+      <thead>
+        <tr><th>Naam</th><th>Voornaam</th><th>Ronde 1</th><th>Ronde 2</th><th>Eindtijd</th><th></th></tr>
+      </thead>
+      <tbody id="deelnemers-body">
+        {% if event %}
+          {% for d in event.deelnames %}
+          <tr>
+            <td><input type="text" name="naam[]" value="{{ d.naam }}"></td>
+            <td><input type="text" name="voornaam[]" value="{{ d.voornaam }}"></td>
+            <td><input type="text" name="ronde1[]" value="{{ d.ronde1 or '' }}" placeholder="mm:ss"></td>
+            <td><input type="text" name="ronde2[]" value="{{ d.ronde2 or '' }}" placeholder="mm:ss"></td>
+            <td><input type="text" name="eindtijd[]" value="{{ d.eindtijd or '' }}" placeholder="mm:ss"></td>
+            <td><button type="button" class="knop secundair kleine-knop" onclick="this.closest('tr').remove()">✕</button></td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+        <tr>
+          <td><input type="text" name="naam[]"></td>
+          <td><input type="text" name="voornaam[]"></td>
+          <td><input type="text" name="ronde1[]" placeholder="mm:ss"></td>
+          <td><input type="text" name="ronde2[]" placeholder="mm:ss"></td>
+          <td><input type="text" name="eindtijd[]" placeholder="mm:ss"></td>
+          <td><button type="button" class="knop secundair kleine-knop" onclick="this.closest('tr').remove()">✕</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p><button type="button" class="knop secundair kleine-knop" onclick="voegRijToe()">+ Deelnemer toevoegen</button></p>
+
+    <div class="veld">
+      <label for="opmerkingen">Opmerkingen</label>
+      <textarea id="opmerkingen" name="opmerkingen" rows="3">{{ event.opmerkingen if event else '' }}</textarea>
+    </div>
+    <div class="veld">
+      <label for="verslag">Verslag (optioneel bestand)</label>
+      <input type="file" id="verslag" name="verslag">
+      {% if event and event.verslag_bestand %}
+        <p style="font-size:.85rem;">Huidig bestand: <a href="{{ url_for('verslag_download', bestandsnaam=event.verslag_bestand) }}">{{ event.verslag_bestand }}</a></p>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="knop">Invoegen</button>
+  </form>
+</div>
+
+{# --- Toegevoegd onder jouw formulier: terug naar home + oefencross verwijderen (enkel bij wijzigen) --- #}
+<div class="knoppenrij geen-print">
+  <a class="knop secundair" href="{{ url_for('home') }}">← Terug naar home</a>
+  {% if bewerken and event %}
+  <form method="post" action="{{ url_for('oefencross_verwijderen', datum_str=event.datum) }}"
+        onsubmit='return confirm({{ ("Weet u zeker dat u de oefencross van " ~ (event.datum|datum_nl) ~ " wilt verwijderen? Alle resultaten van die dag verdwijnen uit de database (er blijft een kopie bewaard in de map DataBase/verwijderd).")|tojson }});'>
+    <button type="submit" class="knop secundair gevaar">Oefencross verwijderen</button>
+  </form>
+  {% endif %}
+</div>
+
+<script>
+function voegRijToe() {
+  const body = document.getElementById('deelnemers-body');
+  const rij = document.createElement('tr');
+  rij.innerHTML = `
+    <td><input type="text" name="naam[]"></td>
+    <td><input type="text" name="voornaam[]"></td>
+    <td><input type="text" name="ronde1[]" placeholder="mm:ss"></td>
+    <td><input type="text" name="ronde2[]" placeholder="mm:ss"></td>
+    <td><input type="text" name="eindtijd[]" placeholder="mm:ss"></td>
+    <td><button type="button" class="knop secundair kleine-knop" onclick="this.closest('tr').remove()">✕</button></td>`;
+  body.appendChild(rij);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{#
+  PRINTWEERGAVE van 1 seizoen (scherm, "Afdrukken" en PDF gebruiken dit bestand).
+  Volgt het sjabloon "Print Seizoensoverzicht": Naam | Voornaam | per maand tussen + eind,
+  eerst Vrouwen, dan Mannen; een PR-tijd in een maand staat fluogeel.
+#}
+{% extends "basis.html" %}
+{% block titel %}Seizoensoverzicht {{ data.seizoen }}{% endblock %}
+{% block inhoud %}
+
+{% macro grid(rijen, maanden) %}
+<div style="overflow-x:auto;" class="grid-wrapper">
+<table class="grid-tabel">
+  <colgroup>
+    <col style="width:8.5%"><col style="width:8.5%">
+    {% for m in maanden %}<col style="width:3.5%"><col style="width:3.5%">{% endfor %}
+  </colgroup>
+  <thead>
+    <tr>
+      <th rowspan="2">Naam</th><th rowspan="2">Voornaam</th>
+      {% for code, maandlabel, nr in maanden %}<th colspan="2">{{ maandlabel }}</th>{% endfor %}
+    </tr>
+    <tr>
+      {% for code, maandlabel, nr in maanden %}<th>tussen</th><th>eind</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rijen %}
+    <tr>
+      <td>{{ r.naam }}</td>
+      <td>{{ r.voornaam }}</td>
+      {% for code, maandlabel, nr in maanden %}
+      {% set cel = r.maanden.get(code) %}
+      <td class="{{ 'pr-geel' if cel and cel.tussen_pr else '' }}">{{ cel.tussen if cel and cel.tussen else '-' }}</td>
+      <td class="{{ 'pr-geel' if cel and cel.eind_pr else '' }}">{{ cel.eind if cel and cel.eind else '-' }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endmacro %}
+
+<div class="kaart">
+  <h2 class="print-titel" style="font-size:1.25rem;">Seizoensoverzicht &mdash; {{ data.seizoen }}</h2>
+
+  {% for label, titel in [("vrouwen", "Vrouwen"), ("mannen", "Mannen")] %}
+  <h3 style="color:var(--groen); margin:1.25rem 0 .4rem;">{{ titel }}</h3>
+  {% if data.rankings[label] %}{{ grid(data.rankings[label], data.maanden) }}{% else %}<p style="color:#888;">Geen resultaten.</p>{% endif %}
+  {% endfor %}
+
+  {% if data.rankings.onbekend %}
+  <h3 style="color:#b8860b; margin:1.25rem 0 .4rem;">Geslacht nog niet gekend <span class="geen-print" style="font-weight:400; color:#888;">(vul aan bij "Alle atleten")</span></h3>
+  {{ grid(data.rankings.onbekend, data.maanden) }}
+  {% endif %}
+
+  <p class="legenda">Fluogeel = persoonlijk record (PR) gelopen in die maand.</p>
+
+  {% if not pdf_modus %}
+  <div class="knoppenrij geen-print" style="margin-top:1.5rem;">
+    <a class="knop secundair" href="{{ url_for('home') }}">← Terug naar home</a>
+    <a class="knop" href="{{ url_for('seizoensoverzicht_print_pdf', seizoen_str=data.seizoen) }}">⬇ Download als PDF</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

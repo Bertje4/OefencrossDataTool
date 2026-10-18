@@ -1,0 +1,50 @@
+<!--
+  BASISTEMPLATE - dit bestand omvat de bovenbalk, navigatie en voettekst die
+  op ELKE pagina van de site verschijnen. Andere pagina's (home.html,
+  oefencross_formulier.html, ...) "erven" van dit bestand.
+
+  Wat kan je hier makkelijk aanpassen (gewoon de tekst tussen de tags wijzigen)?
+    - De titel/clubnaam in de bovenbalk (regel met <h1>) - de titel is ook de
+      link terug naar de homepagina
+    - De volgorde/namen van de navigatieknoppen (binnen <nav class="topnav">)
+    - De tekst in de voettekst onderaan (<footer class="pagina">)
+  Wil je KLEUREN of LETTERTYPE aanpassen? Doe dat in app/static/stijl.css,
+  niet hier.
+  Alles met class="geen-print" verdwijnt bij afdrukken en in de PDF.
+-->
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titel %}ACKO Oefencross Database{% endblock %}</title>
+{% if css_inline %}<style>{{ css_inline|safe }}</style>{% else %}<link rel="stylesheet" href="{{ url_for('static', filename='stijl.css') }}">{% endif %}
+</head>
+<body>
+<header class="topbar geen-print">
+  <h1><a class="titel-link" href="{{ url_for('home') }}">🏃 ACKO Oefencross Database</a></h1>
+  <nav class="topnav">
+    <a href="{{ url_for('home') }}">🏠 Home</a>
+    <a href="{{ url_for('volledige_ranking') }}">Volledige Ranking</a>
+    <a href="{{ url_for('oefencross_nieuw') }}">Oefencross invoegen</a>
+    <a href="{{ url_for('seizoensoverzicht_nieuw') }}">Seizoensoverzicht invoegen</a>
+    <a href="{{ url_for('atleten_overzicht') }}">Alle atleten</a>
+    {% if session.get('ingelogd') %}
+    <form method="post" action="{{ url_for('uitloggen') }}" style="display:inline;">
+      <button type="submit" class="knop secundair kleine-knop" style="margin-left:1rem;">Uitloggen</button>
+    </form>
+    {% endif %}
+  </nav>
+</header>
+<main>
+  <div class="print-kop alleen-print">Officiële ACKO Oefencross Database</div>
+  {% with berichten = get_flashed_messages(with_categories=true) %}
+    {% for categorie, tekst in berichten %}
+      <div class="flash {{ categorie }} geen-print">{{ tekst }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block inhoud %}{% endblock %}
+</main>
+<footer class="pagina geen-print">ACKO Oefencross Database &middot; sinds 40 jaar bijgehouden, nu digitaal</footer>
+</body>
+</html>

@@ -1,0 +1,83 @@
+{#
+  PRINTWEERGAVE van 1 oefencross (het scherm, "Afdrukken" en de PDF gebruiken
+  allemaal dit bestand). Volgt het sjabloon "Print Oefencross" uit de schets:
+
+    "#ste oefencross"   Grote Prijs: <indien van toepassing>
+    Ranking | Naam | Voornaam (+ kroontje bij PR) | #ste deelname |
+    Ronde 1 | (R1 PR) | Ronde 2 | (R2 PR) | Eindtijd | (Eind PR, gelopen op: datum)
+    eerst Vrouwen, dan Mannen
+#}
+{% extends "basis.html" %}
+{% block titel %}{{ data.nummer|ordinaal }} oefencross{% endblock %}
+{% block inhoud %}
+
+{% macro kroon() -%}
+<svg class="kroon-icoon" viewBox="0 0 24 24" role="img" aria-label="nieuw PR"><path fill="#d99a00" d="M2.5 8.2 7.6 12 12 4.5 16.4 12l5.1-3.8-1.6 10.3H4.1z"/><rect fill="#d99a00" x="4.1" y="19.6" width="15.8" height="2" rx=".8"/></svg>
+{%- endmacro %}
+
+{% macro tabel(rijen) %}
+<table class="print-tabel">
+  <colgroup>
+    <col style="width:7%"><col style="width:12%"><col style="width:12%"><col style="width:8%">
+    <col style="width:9%"><col style="width:8%"><col style="width:9%"><col style="width:8%">
+    <col style="width:9%"><col style="width:18%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Ranking</th><th>Naam</th><th>Voornaam</th><th>Deelname</th>
+      <th>Ronde 1</th><th>R1 PR</th>
+      <th>Ronde 2</th><th>R2 PR</th>
+      <th>Eindtijd</th><th>Eind PR (gelopen op)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rijen %}
+    <tr>
+      <td>{{ r.rank }}</td>
+      <td>{{ r.naam }}</td>
+      <td>{{ r.voornaam }}{% if r.kroon %}{{ kroon() }}{% endif %}</td>
+      <td>{{ r.deelname|ordinaal }}</td>
+      <td class="{{ 'nieuw-pr' if r.r1_nieuw_pr else '' }}">{{ r.ronde1 or '-' }}</td>
+      <td class="pr-kolom">{% if r.r1_pr %}({{ r.r1_pr }}){% endif %}</td>
+      <td class="{{ 'nieuw-pr' if r.r2_nieuw_pr else '' }}">{{ r.ronde2 or '-' }}</td>
+      <td class="pr-kolom">{% if r.r2_pr %}({{ r.r2_pr }}){% endif %}</td>
+      <td class="{{ 'nieuw-pr' if r.eind_nieuw_pr else '' }}">{{ r.eindtijd or '-' }}</td>
+      <td class="pr-kolom">{% if r.eind_pr %}({{ r.eind_pr }}, gelopen op: {{ r.eind_pr_datum|datum_nl }}){% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+<div class="kaart">
+  <h2 class="print-titel" style="font-size:1.25rem;">
+    {{ data.nummer|ordinaal }} oefencross
+    <span style="font-weight:400; color:#555;">&mdash; {{ data.datum|datum_nl }}</span>
+    {% if data.grote_prijs %}<span style="font-weight:400;">&mdash; Grote Prijs: {{ data.grote_prijs }}</span>{% endif %}
+  </h2>
+
+  {% for label, titel in [("vrouwen", "Vrouwen"), ("mannen", "Mannen")] %}
+  <h3 style="color:var(--groen); margin:1.25rem 0 .4rem;">{{ titel }}</h3>
+  {% if data.rankings[label] %}{{ tabel(data.rankings[label]) }}{% else %}<p style="color:#888;">Geen deelnemers.</p>{% endif %}
+  {% endfor %}
+
+  {% if data.rankings.onbekend %}
+  <h3 style="color:#b8860b; margin:1.25rem 0 .4rem;">Geslacht nog niet gekend <span class="geen-print" style="font-weight:400; color:#888;">(vul aan bij "Alle atleten")</span></h3>
+  {{ tabel(data.rankings.onbekend) }}
+  {% endif %}
+
+  <p class="legenda">{{ kroon() }} = persoonlijk record (PR) gelopen tijdens deze oefencross (vetgedrukt). Tussen haakjes staat telkens het beste resultaat tot en met deze oefencross.</p>
+
+  {% if not pdf_modus %}
+  <div class="knoppenrij geen-print" style="margin-top:1.5rem;">
+    <a class="knop secundair" href="{{ url_for('home') }}">← Terug naar home</a>
+    <a class="knop" href="{{ url_for('oefencross_print_pdf', datum_str=data.datum) }}">⬇ Download als PDF</a>
+    <a class="knop secundair" href="{{ url_for('oefencross_wijzigen', datum_str=data.datum) }}">Wijzigen</a>
+    <form method="post" action="{{ url_for('oefencross_verwijderen', datum_str=data.datum) }}"
+          onsubmit='return confirm({{ ("Weet u zeker dat u de oefencross van " ~ (data.datum|datum_nl) ~ " wilt verwijderen? Alle resultaten van die dag verdwijnen uit de database (er blijft een kopie bewaard in de map DataBase/verwijderd).")|tojson }});'>
+      <button type="submit" class="knop secundair gevaar">Oefencross verwijderen</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

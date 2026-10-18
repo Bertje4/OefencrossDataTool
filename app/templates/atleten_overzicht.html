@@ -1,0 +1,64 @@
+{# ALLE ATLETEN - overzicht + filter "onvolledig" + rechtstreeks bewerken + atleet verwijderen. #}
+{% extends "basis.html" %}
+{% block titel %}Alle atleten{% endblock %}
+{% block inhoud %}
+<div class="kaart">
+  <h2>Alle atleten</h2>
+  <form method="get" class="rij" style="align-items:flex-end;">
+    <div class="veld">
+      <label for="zoek">Zoeken op naam/voornaam</label>
+      <input type="text" id="zoek" name="zoek" value="{{ zoek }}">
+    </div>
+    <input type="hidden" name="filter" value="{{ filter_param }}" id="filter-hidden">
+    <div class="veld" style="flex:0;">
+      <button class="knop" type="submit">Zoeken</button>
+    </div>
+  </form>
+  <div class="knoppenrij" style="margin-top:.5rem;">
+    <a class="knop {{ 'secundair' if filter_param != 'alle' else '' }}" href="{{ url_for('atleten_overzicht', filter='alle', zoek=zoek) }}">Alle atleten</a>
+    <a class="knop {{ 'secundair' if filter_param != 'onvolledig' else '' }}" href="{{ url_for('atleten_overzicht', filter='onvolledig', zoek=zoek) }}">
+      Enkel onvolledig ({{ totaal_onvolledig }})
+    </a>
+    <a class="knop secundair" href="{{ url_for('home') }}">← Terug naar home</a>
+  </div>
+</div>
+
+<div class="kaart">
+  <form method="post" id="atleten-formulier">
+    {% if atleten %}
+    <table>
+      <thead><tr><th>Naam</th><th>Voornaam</th><th>Geslacht</th><th>Geboortedatum</th><th></th></tr></thead>
+      <tbody>
+        {% for a in atleten %}
+        <tr class="{{ 'onvolledig-rij' if is_onvolledig(a) else '' }}">
+          <td>{{ a.naam }}</td>
+          <td>{{ a.voornaam }}</td>
+          <td>
+            <select name="geslacht_{{ a.id }}">
+              <option value="" {{ 'selected' if not a.geslacht else '' }}>-</option>
+              <option value="v" {{ 'selected' if a.geslacht == 'v' else '' }}>v</option>
+              <option value="m" {{ 'selected' if a.geslacht == 'm' else '' }}>m</option>
+            </select>
+          </td>
+          <td><input type="date" name="geboortedatum_{{ a.id }}" value="{{ a.geboortedatum or '' }}"></td>
+          <td>
+            {# Verwijderknop hoort bij een apart formulier (onderaan), zodat "Enter" in dit formulier nooit per ongeluk een atleet verwijdert #}
+            {% set vraag = "Atleet " ~ a.voornaam ~ " " ~ a.naam ~ " verwijderen uit de atletenlijst? De wedstrijdresultaten blijven bewaard, maar deze persoon verschijnt dan onder 'Geslacht nog niet gekend' en valt weg uit de rankings tot je de atleet opnieuw toevoegt." %}
+            <button type="submit" form="verwijder-{{ a.id }}" class="knop secundair gevaar kleine-knop"
+                    onclick='return confirm({{ vraag|tojson }});'>Verwijderen</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p style="margin-top:1rem;"><button type="submit" class="knop">Wijzigingen opslaan</button></p>
+    {% else %}
+    <p style="color:#888;">Geen atleten gevonden{{ ' met deze filter' if filter_param == 'onvolledig' else '' }}.</p>
+    {% endif %}
+  </form>
+
+  {% for a in atleten %}
+  <form id="verwijder-{{ a.id }}" method="post" action="{{ url_for('atleet_verwijderen', atleet_id=a.id, filter=filter_param, zoek=zoek) }}"></form>
+  {% endfor %}
+</div>
+{% endblock %}
